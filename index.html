@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>I-Forgor 😵</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2a5298">
+    <script src="./index.js"></script>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body ng-app="forgor-app" ng-controller="forgor-ctrl">
+    <div class="todo-container">
+        <div class="todo-header">📝 Things I Might Forget</div>
+
+        <div class="todo-input mb-3" style="    display: flex  ;
+            gap: 10px;
+            align-items: center;">
+            <input type="text" ng-model="newTask" class="form-control" placeholder="What needs to be done?" ng-keypress="checkEnter($event)">
+            <button class="btn btn-primary" ng-click="addTask()"><i class="fas fa-plus"></i></button>
+        </div>
+
+        <div class="todo-list">
+            <div class="todo-item" ng-repeat="task in tasks" ng-class="{'completed': task.completed}">
+                <div>
+                    <input type="checkbox" ng-model="task.completed" ng-change="saveTasks()" class="form-check-input me-2">
+                    <span>{{task.text}}</span>
+                </div>
+                <button class="btn btn-danger btn-circle" ng-click="removeTask($index)"><i class="fas fa-trash"></i></button>
+            </div>
+        </div>
+
+        <div class="footer-text">
+            Built with ❤️ By Shahriar Kabir
+        </div>
+    </div>
+</body>
+</html>
