@@ -5,6 +5,8 @@ const ASSETS = [
     './manifest.json',
     './icon-192.png',
     './icon-512.png',
+    './index.js',
+    './style.css',
     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
     'https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js'
