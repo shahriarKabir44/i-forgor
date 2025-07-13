@@ -11,6 +11,9 @@ body {
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     padding: 1.5rem;
 }
+.toastContainer {
+    z-index: 11;position: absolute;bottom: 10px;right: 10px;border: 1px solid;padding: 10px;border-radius: 5px;width: 250px;
+  }
 .todo-item {
     display: flex;
     justify-content: space-between;
