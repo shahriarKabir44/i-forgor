@@ -18,7 +18,8 @@ angular.module('forgor-app', []).controller('forgor-ctrl', function ($scope, $ti
     };
     $scope.init = () => {
         $scope.tasks = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-        console.log($scope.tasks)
+        $scope.coord = JSON.parse(localStorage.getItem("currentCoord"));
+        $scope.getLocationByInterval()
     }
     $scope.saveTasks = function () {
         localStorage.setItem(STORAGE_KEY, JSON.stringify($scope.tasks));
@@ -33,7 +34,9 @@ angular.module('forgor-app', []).controller('forgor-ctrl', function ($scope, $ti
     $scope.longitude = null;
     $scope.showToaster = true;
 
+    $scope.beginTracking = () => {
 
+    }
 
     // Show toast function
     $scope.showToast = function (title, body) {
@@ -50,23 +53,75 @@ angular.module('forgor-app', []).controller('forgor-ctrl', function ($scope, $ti
     $scope.hideToast = function () {
         $scope.show = false;
     };
-    $scope.getLocation = function () {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(function (position) {
-                $scope.$apply(function () {
-                    $scope.latitude = position.coords.latitude;
-                    $scope.longitude = position.coords.longitude;
-                    // Store the location (e.g., in a service or localStorage)
-                    localStorage.setItem('userLatitude', $scope.latitude);
-                    localStorage.setItem('userLongitude', $scope.longitude);
-                    $scope.showToast("Success!", 'Location Saved!');
+
+    function getLocation() {
+        return new Promise((resolve, reject) => {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function (position) {
+
+                    resolve(position.coords)
+
+                }, function (error) {
+                    reject(error)
                 });
-            }, function (error) {
-                console.log("Error: " + error.message);
-            });
-        } else {
-            console.log("Geolocation is not supported by this browser.");
-        }
+            } else {
+                reject("Geolocation is not supported by this browser.");
+            }
+        })
+    }
+
+
+    $scope.checkDistance = function () {
+        const d = getDistanceInKm($scope.coord, $scope.currentCoord);
+        $scope.distance = d;
+        return d >= 0.01
+    };
+
+    function getDistanceInKm(stored, current) {
+        const R = 6371;
+        const dLat = deg2rad(current.latitude - stored.latitude);
+        const dLon = deg2rad(current.longitude - stored.longitude);
+        const a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(deg2rad(stored.latitude)) * Math.cos(deg2rad(current.latitude)) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    }
+
+    function deg2rad(deg) {
+        return deg * (Math.PI / 180);
+    }
+
+
+    $scope.getLocationByInterval = () => {
+        let homeCoord = JSON.parse(localStorage.getItem("currentCoord"));
+        if (!homeCoord) return;
+
+        setInterval(() => {
+            getLocation()
+                .then(coord => {
+                    coord.accuracy = Math.floor(Math.random() * 1000)
+                    $scope.currentCoord = coord;
+
+                    $scope.$apply();
+                    if ($scope.checkDistance()) {
+                        $scope.showToast("Alert!", "Out of the room!");
+                    }
+
+                });
+        }, 10000);
+
+    }
+
+    $scope.storeCurrentLocation = function () {
+        getLocation()
+            .then(coord => {
+                $scope.coord = coord;
+                localStorage.setItem("currentCoord", JSON.stringify(coord));
+                $scope.$apply();
+                $scope.showToast("Success!", "Location Stored Successfully!")
+            })
     };
 });
 
