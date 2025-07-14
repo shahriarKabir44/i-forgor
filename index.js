@@ -111,7 +111,11 @@ angular.module('forgor-app', []).controller('forgor-ctrl', function ($scope, $ti
                     if ($scope.checkDistance()) {
                         $scope.showToast("Alert!", "Out of the room!");
                         $scope.vibratePhone();
-                        $scope.showNotification();
+                        if (!$scope.hasShownPopup) {
+                            $scope.showNotification();
+                            $scope.hasShownPopup = true;
+                        }
+
                     }
 
                 })
