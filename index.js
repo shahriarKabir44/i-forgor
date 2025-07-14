@@ -93,7 +93,13 @@ angular.module('forgor-app', []).controller('forgor-ctrl', function ($scope, $ti
         return deg * (Math.PI / 180);
     }
 
-
+    $scope.vibratePhone = () => {
+        if (navigator.vibrate) {
+            navigator.vibrate(1000);  // Vibrate for 1 second
+        } else {
+            alert("Vibration not supported on this device.");
+        }
+    }
     $scope.getLocationByInterval = () => {
         let homeCoord = JSON.parse(localStorage.getItem("currentCoord"));
         if (!homeCoord) return;
