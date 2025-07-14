@@ -34,9 +34,7 @@ angular.module('forgor-app', []).controller('forgor-ctrl', function ($scope, $ti
     $scope.longitude = null;
     $scope.showToaster = true;
 
-    $scope.beginTracking = () => {
 
-    }
 
     // Show toast function
     $scope.showToast = function (title, body) {
@@ -93,11 +91,11 @@ angular.module('forgor-app', []).controller('forgor-ctrl', function ($scope, $ti
         return deg * (Math.PI / 180);
     }
 
-    $scope.vibratePhone = () => {
+    $scope.vibratePhone = (pattern = [1000, 200, 1000, 200, 1000]) => {
         if (navigator.vibrate) {
-            navigator.vibrate(1000);  // Vibrate for 1 second
+            navigator.vibrate(pattern);  // Vibrate for 1 second
         } else {
-            alert("Vibration not supported on this device.");
+            $scope.showToast("Error!", "Vibration not supported on this device.");
         }
     }
     $scope.getLocationByInterval = () => {
@@ -107,33 +105,118 @@ angular.module('forgor-app', []).controller('forgor-ctrl', function ($scope, $ti
         setInterval(() => {
             getLocation()
                 .then(coord => {
-                    coord.accuracy = Math.floor(Math.random() * 1000)
                     $scope.currentCoord = coord;
 
                     $scope.$apply();
                     if ($scope.checkDistance()) {
                         $scope.showToast("Alert!", "Out of the room!");
+                        $scope.vibratePhone();
+                        $scope.showNotification();
                     }
 
-                });
-        }, 10000);
+                })
+                .catch(e => {
+                    $scope.showToast("Location Error!", e);
+
+                })
+        }, 5000);
 
     }
 
+    $scope.showNotification = () => {
+        try {
+            if (navigator.serviceWorker.controller) {
+                navigator.serviceWorker.controller.postMessage({ type: 'SHOW_NOTIFICATION', tasks: $scope.tasks });
+            }
+            else {
+                navigator.serviceWorker.ready.then(function (registration) {
+                    console.log(registration)
+                    registration.active.postMessage({ type: 'SHOW_NOTIFICATION', tasks: $scope.tasks });
+                });
+            }
+        } catch (error) {
+            alert(error.toString())
+        }
+
+
+    }
+
+
+
+
     $scope.storeCurrentLocation = function () {
+        $scope.coord = null;
+        $scope.showToast("Please Wait!", "Updating Location.");
         getLocation()
             .then(coord => {
-                $scope.coord = coord;
-                localStorage.setItem("currentCoord", JSON.stringify(coord));
-                $scope.$apply();
-                $scope.showToast("Success!", "Location Stored Successfully!")
+                $scope.$apply(() => {
+                    $scope.coord = coord;
+                    localStorage.setItem("currentCoord", JSON.stringify(coord));
+                    $scope.vibratePhone([1000]);
+                    $scope.showToast("Success!", "Location Stored Successfully!");
+                    $scope.getLocationByInterval();
+                })
+
+
+
+            }).catch(e => {
+                $scope.showToast("Location Error!", e);
+
             })
     };
 });
+if (Notification.permission === "default") {
+    Notification.requestPermission().then(function (permission) {
+        if (permission === "granted") {
+            console.log("Notification permission granted.");
+        } else {
+            console.log("Notification permission denied.");
+        }
+    });
+}
 
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js?v=6')
+        .then(function (registration) {
+            console.log(registration)
+            console.log('Service Worker registered with scope:', registration.scope);
+        })
+        .catch(function (error) {
+            console.error('Service Worker registration failed:', error);
+        });
+}
 
-// if ('serviceWorker' in navigator) {
-//     navigator.serviceWorker.register('sw.js')
-//         .then(reg => console.log('Service Worker registered ✅', reg))
-//         .catch(err => console.error('Service Worker failed ❌', err));
-// }
+else {
+    alert("No SW")
+}
+let deferredPrompt;
+const pwaPrompt = document.getElementById("pwaPrompt");
+
+// Listen for the 'beforeinstallprompt' event
+window.addEventListener("beforeinstallprompt", (e) => {
+    // Prevent default mini-infobar
+    e.preventDefault();
+    deferredPrompt = e;
+
+    // Show the floating panel
+    pwaPrompt.style.display = "block";
+});
+
+// Show install prompt when user clicks "Install"
+function installPWA() {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+
+        deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === "accepted") {
+                console.log("User accepted the install prompt.");
+            } else {
+                console.log("User dismissed the install prompt.");
+            }
+
+            // Hide the panel after interaction
+            pwaPrompt.style.display = "none";
+            deferredPrompt = null;
+        });
+    }
+}
