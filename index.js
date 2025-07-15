@@ -68,11 +68,11 @@ angular.module('forgor-app', []).controller('forgor-ctrl', function ($scope, $ti
         })
     }
 
-
+    $scope.distance = 0;
     $scope.checkDistance = function () {
         const d = getDistanceInKm($scope.coord, $scope.currentCoord);
         $scope.distance = d;
-        return d >= 0.01
+        return d >= 0.05
     };
 
     function getDistanceInKm(stored, current) {
@@ -100,7 +100,10 @@ angular.module('forgor-app', []).controller('forgor-ctrl', function ($scope, $ti
     }
     $scope.getLocationByInterval = () => {
         let homeCoord = JSON.parse(localStorage.getItem("currentCoord"));
-        if (!homeCoord) return;
+        if (!homeCoord) {
+            $scope.showToast("Error!", "Please Select Current Location!")
+            return;
+        }
 
         setInterval(() => {
             getLocation()
@@ -111,7 +114,7 @@ angular.module('forgor-app', []).controller('forgor-ctrl', function ($scope, $ti
                     if ($scope.checkDistance()) {
                         $scope.showToast("Alert!", "Out of the room!");
                         $scope.vibratePhone();
-                        if (!$scope.hasShownPopup) {
+                        if (!$scope.hasShownPopup && $scope.tasks.length) {
                             $scope.showNotification();
                             $scope.hasShownPopup = true;
                         }

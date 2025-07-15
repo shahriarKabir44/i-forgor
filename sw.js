@@ -23,9 +23,9 @@ const ASSETS = [
 
 self.addEventListener('message', function (event) {
     if (event.data && event.data.type === 'SHOW_NOTIFICATION') {
-
+        if (!event.data.tasks.length) return;
         // Show the notification
-        self.registration.showNotification('Looks Like You\'ve forgor something!', {
+        self.registration.showNotification('Looks Like You forgor something!', {
             body: `Tasks: ${event.data.tasks.map(item => item.text).join(', ')}`,
             icon: '/logo/android-chrome-192x192.png',  // Optional: Add an icon
             badge: '/logo/favicon.ico',  // Optional: Add a badge
